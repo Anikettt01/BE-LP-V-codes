@@ -1,129 +1,147 @@
 #include<bits/stdc++.h>
+#include<omp.h>
 using namespace std;
 
-void first_fit(){
-    vector<int>status={0,0,0,0,0};
-    vector<int>block={100,500,200,300,600};
-    vector<int>processsize={212,417,112,426};
-    
-    for(int i=0;i<4;i++){
-        bool allocated = false;
-        for(int j=0;j<5;j++){
-            if(status[j]==0 && block[j]>=processsize[i]){
-                status[j]=1;
-                allocated=true;
-                
-                cout<<" Process "<<i+1<<" Allocated in Block "<<j+1<<endl;
-                break;
-            }
-        }
-        if(allocated == false){
-            cout<<" Process "<<i+1<<" Blok not Allocated "<<endl;
-        }
+int min_seq(vector<int>&arr){
+    int mini=INT_MAX;
+
+    for(int i=0;i<arr.size();i++){
+        if(arr[i]<mini) mini=arr[i];
     }
+
+    return mini;
 }
 
-void best_fit(){
-    vector<int>status={0,0,0,0,0};
-    vector<int>block={100,500,200,300,600};
-    vector<int>processsize={212,417,112,426};
-    
-    for(int i=0;i<4;i++){
-        int best=-1;
-        for(int j=0;j<5;j++){
-            if(status[j]==0 && block[j]>=processsize[i]){
-                if(best == -1 || block[j]<block[best]){
-                    best=j;
-                }
-            }
-        }
-        if(best != -1){
-            status[best]=1;
-            cout<<" Process "<<i+1<<" Allocated in Block "<<best+1<<endl;
-            
-        }
-        else{
-            cout<<" Process "<<i+1<<" Blok not Allocated "<<endl;
-            
-        }
+int min_par(vector<int>&arr){
+    int mini=INT_MAX;
+
+    #pragma omp parallel for reduction(min:mini)
+    for(int i=0;i<arr.size();i++){
+        if(arr[i]<mini) mini=arr[i];
     }
-    
+
+    return mini;
 }
 
-void worst_fit(){
-    vector<int>status={0,0,0,0,0};
-    vector<int>block={100,500,200,300,600};
-    vector<int>processsize={212,417,112,426};
-    
-    for(int i=0;i<4;i++){
-        int worst=-1;
-        for(int j=0;j<5;j++){
-            if(status[j]==0 && block[j]>=processsize[i]){
-                if(worst == -1 || block[j]>block[worst]){
-                    worst=j;
-                }
-            }
-        }
-        if(worst != -1){
-            status[worst]=1;
-            cout<<" Process "<<i+1<<" Allocated in Block "<<worst+1<<endl;
-            
-        }
-        else{
-            cout<<" Process "<<i+1<<" Blok not Allocated "<<endl;
-            
-        }
+int max_seq(vector<int>&arr){
+    int maxi=INT_MIN;
+
+    for(int i=0;i<arr.size();i++){
+        if(arr[i]>maxi) maxi=arr[i];
     }
-    
+
+    return maxi;
 }
 
-void next_fit(){
-    vector<int>status={0,0,0,0,0};
-    vector<int>block={100,500,200,300,600};
-    vector<int>processsize={212,417,112,426};
-    
-    int nextlocation =0;
-    for(int i=0;i<4;i++){
-        bool allocated=false;
-        int count=0;
-        while(count<5){
-            if(status[nextlocation]==0 && block[nextlocation]>=processsize[i]){
-                status[nextlocation]=1;
-                allocated=true;
-                
-                cout<<" Process "<<i+1<<" Allocated in Block "<<nextlocation+1<<endl;
-                break;
-                
-            }
-            nextlocation = (nextlocation + 1)%5;
-            count++;
-        }
-        
+int max_par(vector<int>&arr){
+    int maxi=INT_MIN;
+
+    #pragma omp parallel for reduction(max:maxi)
+    for(int i=0;i<arr.size();i++){
+        if(arr[i]>maxi) maxi=arr[i];
     }
-    
+
+    return maxi;
 }
 
+long long sum_seq(vector<int>&arr){
+    long long sum=0;
 
+    for(int i=0;i<arr.size();i++){
+        sum+=arr[i];
+    }
 
+    return sum;
+}
+
+long long sum_par(vector<int>&arr){
+    long long sum=0;
+
+    #pragma omp parallel for reduction(+:sum)
+    for(int i=0;i<arr.size();i++){
+        sum+=arr[i];
+    }
+
+    return sum;
+}
+
+double avg_seq(vector<int>&arr){
+    long long sum=sum_seq(arr);
+    return (double)sum/arr.size();
+}
+
+double avg_par(vector<int>&arr){
+    long long sum=sum_par(arr);
+    return (double)sum/arr.size();
+}
 
 int main(){
-    cout<<" Fist_fit "<<endl;
-    cout<<endl;
-    first_fit();
-    cout<<endl;
-    
-    cout<<" Best_fit "<<endl;
-    cout<<endl;
-    best_fit();
-    cout<<endl;
-    
-    cout<<" Worst_fit "<<endl;
-    cout<<endl;
-    worst_fit();
-    cout<<endl;
-    
-    cout<<" Next_fit "<<endl;
-    cout<<endl;
-    next_fit();
-    cout<<endl;
+
+    int n=1e7;
+
+    vector<int>arr(n);
+
+    srand(time(0));
+
+    for(int i=0;i<n;i++){
+        arr[i]=rand()%100000;
+    }
+
+    double t1,t2;
+
+    t1=omp_get_wtime();
+    int mn1=min_seq(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Sequential Min = "<<mn1<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    int mn2=min_par(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Parallel Min = "<<mn2<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    int mx1=max_seq(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Sequential Max = "<<mx1<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    int mx2=max_par(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Parallel Max = "<<mx2<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    long long s1=sum_seq(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Sequential Sum = "<<s1<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    long long s2=sum_par(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Parallel Sum = "<<s2<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    double a1=avg_seq(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Sequential Average = "<<a1<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
+
+    t1=omp_get_wtime();
+    double a2=avg_par(arr);
+    t2=omp_get_wtime();
+
+    cout<<"Parallel Average = "<<a2<<endl;
+    cout<<"Time = "<<t2-t1<<" sec"<<endl;
 }
