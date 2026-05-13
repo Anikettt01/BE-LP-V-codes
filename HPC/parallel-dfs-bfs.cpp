@@ -3,8 +3,8 @@
 using namespace std;
 
 void bfss(int start,vector<vector<int>>&adj,vector<int>&visited){
-    queue<int>q;
     visited[start]=1;
+    queue<int>q;
     q.push(start);
     while(!q.empty()){
         int node=q.front();
@@ -19,9 +19,9 @@ void bfss(int start,vector<vector<int>>&adj,vector<int>&visited){
 }
 
 void bfsp(int start,vector<vector<int>>&adj,vector<int>&visited){
+    visited[start]=1;
     queue<int>q;
     q.push(start);
-    visited[start]=1;
     while(!q.empty()){
         int size=q.size();
         #pragma omp parallel for
@@ -56,10 +56,12 @@ void dfss(int start,vector<vector<int>>&adj,vector<int>&visited){
     }
 }
 
-void dfsp(int start,vector<vector<int>>&adj,vector<int>&visited){
-    
+void dfsp(int start,vector<vector<int>>&adj,vector<int>&visited,int depth){
+
     for(int i:adj[start]){
+
         bool flag=false;
+
         #pragma omp critical
         {
             if(!visited[i]){
@@ -67,31 +69,37 @@ void dfsp(int start,vector<vector<int>>&adj,vector<int>&visited){
                 flag=true;
             }
         }
-        if(flag){
-            #pragma omp task
-            dfsp(i,adj,visited);
-        }
-    }
-    #pragma omp taskwait
-}
 
-int main(){
-    int v;
-    cout<<"total vertices: ";
-    cin>>v;
-    
-    vector<vector<int>>adj(v);
-    for(int i=0;i<v;i++){
-        for(int j=0;j<5;j++){
-            int node=rand()%v;
-            if(i!=node){
-                adj[i].push_back(node);
-                adj[node].push_back(i);
+        if(flag){
+
+            if(depth<3){
+
+                #pragma omp task
+                dfsp(i,adj,visited,depth+1);
+
+            }
+            else{
+                dfsp(i,adj,visited,depth+1);
             }
         }
     }
-    
-    omp_set_num_threads(4);
+
+    #pragma omp taskwait
+}
+
+int v=10000;
+
+int main(){
+    vector<vector<int>>adj(v);
+    for(int i=0;i<v;i++){
+        for(int j=0;j<5;j++){
+            int node = rand()%v;
+            if(i!=node){
+                adj[node].push_back(i);
+                adj[i].push_back(node);
+            }
+        }
+    }
     
     vector<int>visited(v,0);
     
@@ -110,22 +118,19 @@ int main(){
     double end3=omp_get_wtime();
     
     visited.assign(v,0);
-    visited[0]=1;
     double start4=omp_get_wtime();
+    visited[0]=1;
     #pragma omp parallel
     {
         #pragma omp single
         {
-            #pragma omp task
-            dfsp(0,adj,visited);
+            dfsp(0,adj,visited,0);
         }
     }
     double end4=omp_get_wtime();
     
-    cout<<"BFS Sequential Time: "<<(end1-start1)*1e6<<endl;
-    cout<<"BFS Parallel Time: "<<(end2-start2)*1e6<<endl;
-    cout<<"DFS Sequential Time: "<<(end3-start3)*1e6<<endl;
-    cout<<"DFS Parallel Time: "<<(end4-start4)*1e6<<endl;
-    
-    return 0;
+    cout<<"bfs sequential: "<<end1-start1<<endl;
+    cout<<"bfs parallel: "<<end2-start2<<endl;
+    cout<<"dfs sequential: "<<end3-start3<<endl;
+    cout<<"dfs parallel: "<<end4-start4<<endl;
 }
