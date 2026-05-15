@@ -2,144 +2,118 @@
 #include<omp.h>
 using namespace std;
 
-int min_seq(vector<int>&arr){
+void minimum_seq(vector<int>&arr){
     int mini=INT_MAX;
-
     for(int i=0;i<arr.size();i++){
         if(arr[i]<mini) mini=arr[i];
     }
-
-    return mini;
+    cout<<" Minimun Sequential: "<<mini<<endl;
 }
 
-int min_par(vector<int>&arr){
+void minimum_par(vector<int>&arr){
     int mini=INT_MAX;
-
     #pragma omp parallel for reduction(min:mini)
     for(int i=0;i<arr.size();i++){
         if(arr[i]<mini) mini=arr[i];
     }
-
-    return mini;
+    cout<<" Minimun Parallel: "<<mini<<endl;
 }
 
-int max_seq(vector<int>&arr){
+void maximum_seq(vector<int>&arr){
     int maxi=INT_MIN;
-
     for(int i=0;i<arr.size();i++){
         if(arr[i]>maxi) maxi=arr[i];
     }
-
-    return maxi;
+    cout<<" Maximum Sequential: "<<maxi<<endl;
 }
 
-int max_par(vector<int>&arr){
+void maximum_par(vector<int>&arr){
     int maxi=INT_MIN;
-
-    #pragma omp parallel for reduction(max:maxi)
+     #pragma omp parallel for reduction(max:maxi)
     for(int i=0;i<arr.size();i++){
         if(arr[i]>maxi) maxi=arr[i];
     }
-
-    return maxi;
+    cout<<" maximum parallel: "<<maxi<<endl;
 }
 
-long long sum_seq(vector<int>&arr){
+int sum_seq(vector<int>&arr){
     long long sum=0;
-
+    
     for(int i=0;i<arr.size();i++){
         sum+=arr[i];
     }
-
+    cout<<"sum_sequential: "<<sum<<endl;
     return sum;
 }
 
-long long sum_par(vector<int>&arr){
+int sum_par(vector<int>&arr){
     long long sum=0;
-
     #pragma omp parallel for reduction(+:sum)
+    
     for(int i=0;i<arr.size();i++){
         sum+=arr[i];
     }
-
+    cout<<"sum_parallel: "<<sum<<endl;
     return sum;
 }
 
-double avg_seq(vector<int>&arr){
+void average_seq(vector<int>&arr){
     long long sum=sum_seq(arr);
-    return (double)sum/arr.size();
+    cout<<"average_sequential: "<<(double)sum/arr.size()<<endl;
 }
 
-double avg_par(vector<int>&arr){
+void average_par(vector<int>&arr){
     long long sum=sum_par(arr);
-    return (double)sum/arr.size();
+    cout<<"average_parallel: "<<(double)sum/arr.size()<<endl;
 }
 
 int main(){
-
-    int n=1e7;
-
+    int n=100000;
+    
     vector<int>arr(n);
-
-    for(int i=0;i<n;i++){
-        arr[i]=rand()%100000;
+    
+    for(int i=0;i<arr.size();i++){
+        arr[i]=rand()%1000;
     }
-
-    double t1,t2;
-
+    double t1 ,t2;
+    
     t1=omp_get_wtime();
-    int mn1=min_seq(arr);
+    minimum_seq(arr);
     t2=omp_get_wtime();
-
-    cout<<"Sequential Min = "<<mn1<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    int mn2=min_par(arr);
+    minimum_par(arr);
     t2=omp_get_wtime();
-
-    cout<<"Parallel Min = "<<mn2<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    int mx1=max_seq(arr);
+    maximum_seq(arr);
     t2=omp_get_wtime();
-
-    cout<<"Sequential Max = "<<mx1<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    int mx2=max_par(arr);
+    maximum_par(arr);
     t2=omp_get_wtime();
-
-    cout<<"Parallel Max = "<<mx2<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    long long s1=sum_seq(arr);
+    sum_seq(arr);
     t2=omp_get_wtime();
-
-    cout<<"Sequential Sum = "<<s1<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    long long s2=sum_par(arr);
+    sum_par(arr);
     t2=omp_get_wtime();
-
-    cout<<"Parallel Sum = "<<s2<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    double a1=avg_seq(arr);
+    average_seq(arr);
     t2=omp_get_wtime();
-
-    cout<<"Sequential Average = "<<a1<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl<<endl;
-
+    cout<<"time: "<<t2-t1<<endl;
+    
     t1=omp_get_wtime();
-    double a2=avg_par(arr);
+    average_par(arr);
     t2=omp_get_wtime();
-
-    cout<<"Parallel Average = "<<a2<<endl;
-    cout<<"Time = "<<t2-t1<<" sec"<<endl;
+    cout<<"time: "<<t2-t1<<endl;
 }
